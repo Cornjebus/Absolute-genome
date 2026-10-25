@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absolute Genome Engine — Human Frontier Labs</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo-area">
+      <div class="badge">HFL // ABSOLUTE SYNTAX</div>
+      <h1>Absolute Genome Engine</h1>
+      <p class="subtitle">Digital Twin & Interactive Simulator for the Brake-Clearance Genome Compiler</p>
+    </div>
+    <nav>
+      <button class="nav-btn active" data-tab="wetlab">Urea-PAGE Pause Assay</button>
+      <button class="nav-btn" data-tab="bilateral">Bilateral Collatz Mirror</button>
+      <button class="nav-btn" data-tab="scanner">Syntax Scanner</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- TAB 1: WET LAB SIMULATOR -->
+    <section id="tab-wetlab" class="tab-pane active">
+      <div class="card intro-card">
+        <h2>Cell-Free Primer-Extension Pause Simulator (15% Urea-PAGE)</h2>
+        <p>Simulating reverse transcriptase elongation across the 12-nt AT arrest motif (<strong>TATAATTAATTT</strong>) vs. the strict isothermal scrambled control (<strong>TTAAATATTTAT</strong>, &Delta;Tm = 0.000&deg;C). Based on HFL Documents 1–4.</p>
+      </div>
+
+      <div class="grid-2col">
+        <div class="card controls-card">
+          <h3>Simulation Parameters</h3>
+          <div class="control-group">
+            <label>Enzyme Architecture:</label>
+            <select id="enzyme-select">
+              <option value="mashill">Phage ART (MarsHill / SA1)</option>
+              <option value="orf2p">Human LINE-1 ORF2p RT</option>
+              <option value="commercial">Commercial MMLV / AMV (Step Zero)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Reaction Timecourse: <span id="time-val">120s</span></label>
+            <input type="range" id="time-slider" min="15" max="600" value="120" step="15">
+          </div>
+          <div class="control-group">
+            <label>Magnesium [Mg2+]: <span id="mg-val">3.0 mM</span></label>
+            <input type="range" id="mg-slider" min="1" max="10" value="3" step="0.5">
+          </div>
+          <div class="stats-box">
+            <h4>Thermodynamic Tie-Out</h4>
+            <div class="stat-row"><span>Consensus Motif:</span> <code>TATAATTAATTT</code> (Tm: 12.94&deg;C)</div>
+            <div class="stat-row"><span>Control Motif:</span> <code>TTAAATATTTAT</code> (Tm: 12.94&deg;C)</div>
+            <div class="stat-row"><span>&Delta;Tm:</span> <strong>0.000 &deg;C (Strict Iso-thermal)</strong></div>
+          </div>
+        </div>
+
+        <div class="card gel-card">
+          <h3>Simulated 15% Urea-PAGE Scan</h3>
+          <div class="gel-container">
+            <canvas id="gelCanvas" width="360" height="420"></canvas>
+            <div class="gel-legend">
+              <span class="legend-item"><span class="box arrest"></span> 19–30 nt Arrest Zone</span>
+              <span class="legend-item"><span class="box full"></span> 49 nt Full Length</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <h3>Densitometric Pause Fraction vs. Time</h3>
+        <canvas id="kineticsChart" height="90"></canvas>
+      </div>
+    </section>
+
+    <!-- TAB 2: BILATERAL COLLATZ MIRROR -->
+    <section id="tab-bilateral" class="tab-pane">
+      <div class="card intro-card">
+        <h2>Bilateral Collatz Toroid &amp; Two's Complement Inversion</h2>
+        <p>Extending Collatz into integers via <code>3n + sign(n)</code> reveals an exact bitwise NOT-gate mirror across absolute 1 and -1, governing the terminal 4-2-1 attractor loop.</p>
+      </div>
+
+      <div class="card">
+        <div class="chontrol-group inline">
+          <label for="collatz-input">Starting Seed Integer:</label>
+          <input type="number" id="collatz-input" value="27">
+          <button id="btn-run-collatz">Generate Bilateral Trajectory</button>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <div class="card">
+          <h3>Positive Manifold (Real)</h3>
+          <div class="manifold-box" id="pos-manifold"></div>
+        </div>
+        <div class="card">
+          <h3>Negative Manifold (Imaginary Mirror)</h3>
+          <div class="manifold-box" id="neg-manifold"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Bitwise Register Reflection (8-bit Toroid)</h3>
+        <div class="bit-table-container">
+          <table class="bit-table">
+            <thead>
+              <tr><th>Step</th><th>Positive (Real)</th><th>Bitstring</th><th>Negative (Mirror)</th><th>Bitstring (Two's Comp)</th><th>Symmetry</th></tr>
+            </thead>
+            <tbody id="bit-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SYNTAX SCANNER -->
+    <section id="tab-scanner" class="tab-pane">
+      <div class="card intro-card">
+        <h2>Absolute Syntax Genome Scanner</h2>
+        <p>Scan genomic DNA sequences for conserved junction brakes (<code>TATAATTAATTTT</code>), lineage-specific indel variants (<code>TATAATTAATTTT</code>), and flanking GC traps.</p>
+      </div>
+
+      <div class="card">
+        <label>Input FASTA Sequence:</label>
+        <textarea id="fasta-input" rows="6" placeholder="Paste FASTA or raw DNY sequence here..."></textarea>
+        <div class="button-row">
+          <button id="btn-load-mars">Load MarsHill Phage Array</button>
+          <button id="btn-load-chr21">Load Human Chr21 L1 Locus</button>
+          <button id="btn-scan" class="primary-btn">Scan Sequence</button>
+        </div>
+      </div>
+
+      <div class="card" id="scan-results-card" style="display:none;">
+        <h3>Syntax Architecture Hits</h3>
+        <div id="scan-summary"></div>
+        <div id="scan-hits-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Human Frontier Labs &copy; 2026 &bull; Absolute Syntax Open Falsification Architecture &bull; <a href="https://humanfrontierlabs.com/for-humanity" target="_blank">humanfrontierlabs.com/for-humanity</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

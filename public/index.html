@@ -117,4 +117,31 @@
     <section id="tab-scanner" class="tab-pane">
       <div class="card intro-card">
         <h2>Absolute Syntax Genome Scanner</h2>
-        <p>Scan genomic DNE
+        <p>Scan genomic DNA sequences for conserved junction brakes (<code>TATAATTAATTT</code>), lineage-specific indel variants (<code>TATAATTAATTTT</code>), and flanking GC traps.</p>
+      </div>
+
+      <div class="card">
+        <label>Input FASTA Sequence:</label>
+        <textarea id="fasta-input" rows="6" placeholder="Paste FASTA or raw DNA sequence here..."></textarea>
+        <div class="button-row">
+          <button id="btn-load-mars">Load MarsHill Phage Array</button>
+          <button id="btn-load-chr21">Load Human Chr21 L1 Locus</button>
+          <button id="btn-scan" class="primary-btn">Scan Sequence</button>
+        </div>
+      </div>
+
+      <div class="card" id="scan-results-card" style="display:none;">
+        <h3>Syntax Architecture Hits</h3>
+        <div id="scan-summary"></div>
+        <div id="scan-hits-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Human Frontier Labs &copy; 2026 &bull; Absolute Syntax Open Falsification Architecture &bull; <a href="https://humanfrontierlabs.com/for-humanity" target="_blank">humanfrontierlabs.com/for-humanity</a></p>
+  </footer>
+
+  <script src="app.js?v=2"></script>
+</body>
+</html>

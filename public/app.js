@@ -121,7 +121,7 @@ function initKineticsChart() {
           fill: true
         },
         {
-          label: 'Scramble Control Arrest Fraction (ÎåTm 0.000Â°C)',
+          label: 'Scramble Control Arrest Fraction (Delta-Tm 0.000 deg C)',
           data: times.map(t => 0.06 * (1 - Math.exp(-t / 30))),
           borderColor: '#10b981',
           borderDash: [5, 5],
@@ -140,7 +140,8 @@ function initKineticsChart() {
   });
 }
 
-function updateKineticsChart() {  if (!kineticsChart) return;
+function updateKineticsChart() {
+  if (!kineticsChart) return;
   const enzyme = enzymeSelect.value;
   const mod = enzyme === 'commercial' ? 0.45 : (enzyme === 'orf2p' ? 0.85 : 0.92);
   const times = [15, 30, 60, 120, 240, 360, 480, 600];
@@ -149,7 +150,8 @@ function updateKineticsChart() {  if (!kineticsChart) return;
 }
 
 // TAB 2: Bilateral Collatz Engine
-function toBinary8(n) {
+function toBinary8(n: number) {}
+function toBinary8(n9 {
   let v = n < 0 ? (256 + n) : n;
   return (v >>> 0).toString(2).padStart(8, '0');
 }
@@ -173,8 +175,8 @@ function runBilateralCollatz(seed) {
     negSteps.push(neg);
   }
 
-  document.getElementById('pos-manifold').innerText = posSteps.join(' â†’ ');
-  document.getElementById('neg-manifold').innerText = negSteps.join(' â†’ ');
+  document.getElementById('pos-manifold').innerText = posSteps.join(' -> ');
+  document.getElementById('neg-manifold').innerText = negSteps.join(' -> ');
 
   const tbody = document.getElementById('bit-tbody');
   tbody.innerHTML = '';

@@ -88,11 +88,11 @@ function renderGel() {
   // Primer band (18 nt, bottom ~370)
   drawBand(120, 370, 5, 36, 0.9, 'rgba(56, 189, 248, ALPHA)');
   drawBand(200, 370, 5, 36, Math.max(0.1, 1 - arrestIntensityConsensus - fullIntensityConsensus), 'rgba(56, 189, 248, ALPHA)');
-  drawBand(280, 370, 5, 36, Math.max(0.1, 1 - arrestIntensityControl - fullIntensityConsensus), 'rgba(56, 189, 248, ALPHA)');
+  drawBand(280, 370, 5, 36, Math.max(0.1, 1 - arrestIntensityControl - fullIntensityControl), 'rgba(56, 189, 248, ALPHA)');
 
   // 19-30 nt Arrest Zone (~240-270)
   drawBand(200, 255, 12, 38, arrestIntensityConsensus, 'rgba(56, 189, 248, ALPHA)');
-  drawBand(280, 255, 6, 38, arrestIntensityControl, 'rgba(56, 189, 248, ALPHA)');
+  drawBand(280, 255, 6, 38, arrestIntensityConsensus, 'rgba(56, 189, 248, ALPHA)');
 
   // 49 nt Full Length (~110)
   drawBand(200, 110, 6, 38, fullIntensityConsensus, 'rgba(16, 185, 129, ALPHA)');
@@ -121,7 +121,7 @@ function initKineticsChart() {
           fill: true
         },
         {
-          label: 'Scramble Control Arrest Fraction (Î”Tm 0.000Â C)',
+          label: 'Scramble Control Arrest Fraction (ÎåTm 0.000Â°C)',
           data: times.map(t => 0.06 * (1 - Math.exp(-t / 30))),
           borderColor: '#10b981',
           borderDash: [5, 5],
@@ -133,14 +133,14 @@ function initKineticsChart() {
     options: {
       responsive: true,
       scales: {
-        y: { min: 0, max: 1.0, title: { display: true, text: 'Pause / Arrest Ratio' u} },
-        x: { title: { display: true, text: 'Reaction Time (seconds)' u} }
+        y: { min: 0, max: 1.0, title: { display: true, text: 'Pause / Arrest Ratio' } },
+        x: { title: { display: true, text: 'Reaction Time (seconds)' } }
       }
     }
   });
 }
 
-function updateKineticsChart() {
+function updateKineticsChart();
   if (!kineticsChart) return;
   const enzyme = enzymeSelect.value;
   const mod = enzyme === 'commercial' ? 0.45 : (enzyme === 'orf2p' ? 0.85 : 0.92);
@@ -242,7 +242,7 @@ document.getElementById('btn-scan').addEventListener('click', () => {
     idx += brakeMotif.length;
   }
 
-  const resCard = document.getElementById('scan-results-card");
+  const resCard = document.getElementById('scan-results-card');
   const summaryDiv = document.getElementById('scan-summary');
   const hitsDiv = document.getElementById('scan-hits-list');
 

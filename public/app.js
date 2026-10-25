@@ -1,102 +1,60 @@
-// Navigation
+const $ = id => document.getElementById(id);
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    $('tab-' + btn.dataset.tab).classList.add('active');
   });
 });
 
-// TAB 1: Gel Simulation
-const gelCanvas = document.getElementById('gelCanvas');
-const ctx = gelCanvas.getContext('2d');
-const timeSlider = document.getElementById('time-slider');
-const timeVal = document.getElementById('time-val');
-const mgSlider = document.getElementById('mg-slider');
-const mgVal = document.getElementById('mg-val');
-const enzymeSelect = document.getElementById('enzyme-select');
-
+const gelCanvas = $('gelCanvas'), ctx = gelCanvas.getContext('2d');
+const timeSlider = $('time-slider'), timeVal = $('time-val');
+const mgSlider = $('mg-slider'), mgVal = $('mg-val'), enzymeSelect = $('enzyme-select');
 let kineticsChart = null;
 
 function renderGel() {
-  const t = parseInt(timeSlider.value);
+  const t = parseInt(timeSlider.value), mg = parseFloat(mgSlider.value), enz = enzymeSelect.value;
   timeVal.innerText = t + 's';
-  const mg = parseFloat(mgSlider.value);
   mgVal.innerText = mg.toFixed(1) + ' mM';
-  const enzyme = enzymeSelect.value;
-
-  // Clear gel
   ctx.fillStyle = '#05070d';
   ctx.fillRect(0, 0, gelCanvas.width, gelCanvas.height);
 
-  // Draw lanes: 1=Ladder, 2=Primer alone, 3=Consensus (TATAATTAATTT), 4=Control (TTAAATATTTAT)
-  const lanes = [
-    { name: 'MW', x: 50 },
-    { name: 'Primer', x: 120 },
-    { name: 'Consensus', x: 200 },
-    { name: 'Control', x: 280 }
-  ];
-
+  const lanes = [{name:'MW',x:50},{name:'Primer',x:120},{name:'Consensus',x:200},{name:'Control',x:280}];
   ctx.fillStyle = '#94a3b8';
   ctx.font = '11px sans-serif';
   ctx.textAlign = 'center';
-
   lanes.forEach(l => {
     ctx.fillText(l.name, l.x, 24);
-    // Draw lane track
     ctx.strokeStyle = '#1e293b';
-    ctx.beginPath();
-    ctx.moveTo(l.x, 35);
-    ctx.lineTo(l.x, 400);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(l.x, 35); ctx.lineTo(l.x, 400); ctx.stroke();
   });
 
-  // Calculate kinetics
-  // Consensus pauses heavily in 19-30 nt window; control reads through to 49 nt
-  let arrestIntensityConsensus = 0;
-  let fullIntensityConsensus = 0;
-  let arrestIntensityControl = 0;
-  let fullIntensityControl = 0;
+  const rateMod = enz === 'orf2p' ? 0.8 : (enz === 'commercial' ? 1.4 : 1.0);
+  const prog = Math.min(1.0, (t * rateMod * (mg / 3.0)) / 300);
+  const arrCons = 0.85 * (1 - Math.exp(-t / 40)) * (enz === 'commercial' ? 0.4 : 0.95);
+  const fullCons = 0.25 * Math.max(0, (t - 60) / 240);
+  const arrCtrl = 0.05 * (1 - Math.exp(-t / 30));
+  const fullCtrl = 0.85 * prog;
 
-  const rateModifier = enzyme === 'orf2p' ? 0.8 : (enzyme === 'commercial' ? 1.4 : 1.0);
-  const mgFactor = (mg / 3.0);
-
-  // Time evolution
-  const progress = Math.min(1.0, (t * rateModifier * mgFactor) / 300);
-  arrestIntensityConsensus = 0.85 * (1 - Math.exp(-t / 40)) * (enzyme === 'commercial' ? 0.4 : 0.95);
-  fullIntensityConsensus = 0.25 * Math.max(0, (t - 60) / 240);
-
-  arrestIntensityControl = 0.05 * (1 - Math.exp(-t / 30));
-  fullIntensityControl = 0.85 * progress;
-
-  // Helper to draw band
-  function drawBand(x, y, height, width, intensity, color) {
-    if (intensity <= 0) return;
-    const gradient = ctx.createLinearGradient(x - width/2, y, x + width/2, y);
-    gradient.addColorStop(0, 'rgba(0,0,0,0)');
-    gradient.addColorStop(0.5, color.replace('ALPHA', intensity.toFixed(2)));
-    gradient.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(x - width/2, y - height/2, width, height);
+  function band(x, y, h, w, a, col) {
+    if (a <= 0) return;
+    const g = ctx.createLinearGradient(x - w/2, y, x + w/2, y);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(0.5, col.replace('ALPHA', a.toFixed(2)));
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - w/2, y - h/2, w, h);
   }
 
-  // Ladder bands
-  const ladderY = [70, 110, 160, 220, 290, 360];
-  ladderY.forEach(y => drawBand(50, y, 4, 30, 0.7, 'rgba(148, 163, 184, ALPHA)'));
-
-  // Primer band (18 nt, bottom ~370)
-  drawBand(120, 370, 5, 36, 0.9, 'rgba(56, 189, 248, ALPHA)');
-  drawBand(200, 370, 5, 36, Math.max(0.1, 1 - arrestIntensityConsensus - fullIntensityConsensus), 'rgba(56, 189, 248, ALPHA)');
-  drawBand(280, 370, 5, 36, Math.max(0.1, 1 - arrestIntensityControl - fullIntensityControl), 'rgba(56, 189, 248, ALPHA)');
-
-  // 19-30 nt Arrest Zone (~240-270)
-  drawBand(200, 255, 12, 38, arrestIntensityConsensus, 'rgba(56, 189, 248, ALPHA)');
-  drawBand(280, 255, 6, 38, arrestIntensityConsensus, 'rgba(56, 189, 248, ALPHA)');
-
-  // 49 nt Full Length (~110)
-  drawBand(200, 110, 6, 38, fullIntensityConsensus, 'rgba(16, 185, 129, ALPHA)');
-  drawBand(280, 110, 8, 38, fullIntensityConsensus, 'rgba(16, 185, 129, ALPHA)');
+  [70, 110, 160, 220, 290, 360].forEach(y => band(50, y, 4, 30, 0.7, 'rgba(148,163,184,ALPHA)'));
+  band(120, 370, 5, 36, 0.9, 'rgba(56,189,248,ALPHA)');
+  band(200, 370, 5, 36, Math.max(0.1, 1 - arrCons - fullCons), 'rgba(56,189,248,ALPHA)');
+  band(280, 370, 5, 36, Math.max(0.1, 1 - arrCtrl - fullCtrl), 'rgba(56,189,248,ALPHA)');
+  band(200, 255, 12, 38, arrCons, 'rgba(56,189,248,ALPHA)');
+  band(280, 255, 6, 38, arrCtrl, 'rgba(56,189,248,ALPHA)');
+  band(200, 110, 6, 38, fullCons, 'rgba(16,185,129,ALPHA)');
+  band(280, 110, 8, 38, fullCtrl, 'rgba(16,185,129,ALPHA)');
 }
 
 timeSlider.addEventListener('input', renderGel);
@@ -104,10 +62,8 @@ mgSlider.addEventListener('input', renderGel);
 enzymeSelect.addEventListener('change', () => { renderGel(); updateKineticsChart(); });
 
 function initKineticsChart() {
-  const ctxK = document.getElementById('kineticsChart').getContext('2d');
   const times = [15, 30, 60, 120, 240, 360, 480, 600];
-  
-  kineticsChart = new Chart(ctxK, {
+  kineticsChart = new Chart($('kineticsChart').getContext('2d'), {
     type: 'line',
     data: {
       labels: times.map(t => t + 's'),
@@ -116,7 +72,7 @@ function initKineticsChart() {
           label: 'Consensus Motif Arrest Fraction (19-30 nt)',
           data: times.map(t => 0.88 * (1 - Math.exp(-t / 45))),
           borderColor: '#38bdf8',
-          backgroundColor: 'rgba(56, 189, 248, 0.1)',
+          backgroundColor: 'rgba(56,189,248,0.1)',
           tension: 0.3,
           fill: true
         },
@@ -142,131 +98,74 @@ function initKineticsChart() {
 
 function updateKineticsChart() {
   if (!kineticsChart) return;
-  const enzyme = enzymeSelect.value;
-  const mod = enzyme === 'commercial' ? 0.45 : (enzyme === 'orf2p' ? 0.85 : 0.92);
+  const enz = enzymeSelect.value;
+  const mod = enz === 'commercial' ? 0.45 : (enz === 'orf2p' ? 0.85 : 0.92);
   const times = [15, 30, 60, 120, 240, 360, 480, 600];
   kineticsChart.data.datasets[0].data = times.map(t => mod * (1 - Math.exp(-t / 45)));
   kineticsChart.update();
 }
 
-// TAB 2: Bilateral Collatz Engine
-function toBinary8(n: number) {}
-function toBinary8(n9 {
-  let v = n < 0 ? (256 + n) : n;
+function bin8(x) {
+  const v = x < 0 ? (256 + x) : x;
   return (v >>> 0).toString(2).padStart(8, '0');
 }
 
 function runBilateralCollatz(seed) {
-  let pos = Math.abs(seed);
-  let neg = -pos;
-
-  let posSteps = [pos];
-  let negSteps = [neg];
-
+  let pos = Math.abs(seed), neg = -pos, pSteps = [pos], nSteps = [neg];
   for (let i = 0; i < 40 && pos !== 1; i++) {
-    if (pos % 2 === 0) pos = pos / 2;
-    else pos = 3 * pos + 1;
-    posSteps.push(pos);
+    pos = (pos % 2 === 0) ? (pos / 2) : (3 * pos + 1);
+    pSteps.push(pos);
   }
-
   for (let i = 0; i < 40 && neg !== -1; i++) {
-    if (neg % 2 === 0) neg = neg / 2;
-    else neg = 3 * neg - 1; // 3n + sign(n)
-    negSteps.push(neg);
+    neg = (neg % 2 === 0) ? (neg / 2) : (3 * neg - 1);
+    nSteps.push(neg);
   }
-
-  document.getElementById('pos-manifold').innerText = posSteps.join(' -> ');
-  document.getElementById('neg-manifold').innerText = negSteps.join(' -> ');
-
-  const tbody = document.getElementById('bit-tbody');
+  $('pos-manifold').innerText = pSteps.join(' -> ');
+  $('neg-manifold').innerText = nSteps.join(' -> ');
+  const tbody = $('bit-tbody');
   tbody.innerHTML = '';
-
-  const maxLen = Math.min(posSteps.length, negSteps.length, 12);
-  for (let i = 0; i < maxLen; i++) {
-    const pVal = posSteps[i];
-    const nVal = negSteps[i];
-    const pBin = toBinary8(pVal);
-    const nBin = toBinary8(nVal);
+  const len = Math.min(pSteps.length, nSteps.length, 12);
+  for (let i = 0; i < len; i++) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${i}</td>
-      <td><strong>${pVal}</strong></td>
-      <td><code>${pBin}</code></td>
-      <td><strong>${nVal}</strong></td>
-      <td><code>${nBin}</code></td>
-      <td style="color:#38bdf8;">Bitwise Mirror (Two's Comp)</td>
-    `;
+    tr.innerHTML = '<td>' + i + '</td><td><strong>' + pSteps[i] + '</strong></td><td><code>' + bin8(pSteps[i]) + '</code></td><td><strong>' + nSteps[i] + '</strong></td><td><code>' + bin8(nSteps[i]) + '</code></td><td style="color:#38bdf8;">Bitwise Mirror (Two\'s Comp)</td>';
     tbody.appendChild(tr);
   }
 }
 
-document.getElementById('btn-run-collatz').addEventListener('click', () => {
-  const seed = parseInt(document.getElementById('collatz-input').value) || 27;
-  runBilateralCollatz(seed);
+$('btn-run-collatz').addEventListener('click', () => {
+  runBilateralCollatz(parseInt($('collatz-input').value) || 27);
 });
 
-// TAB 3: Syntax Scanner
-const sampleMarsHill = `>MarsHill_phage_array_214k
-ATGCGTATAATTAATTTGCAGTCGTAGCTGCAGTCGATCGTAGCTAGCTAGCTGATCGATCGATCGTAGC
-TATAATTAATTTCCGGTTACGTACGTAAACCATTAGCTAGCTAGCGCTACGATCGATCGATCGTAGCTAG
-TATAATTAATTTTGCTAGCTAGCTAGCTAGCTAGCTACGATCGATCGTAGCTAGCTAGCTAGC`;
+const sampleMarsHill = ">MarsHill_phage_array_214k\nATGCGTATAATTAATTTGCAGTCGTAGCTGCAGTCGATCGTAGCTAGCTAGCTGATCGATCGATCGTAGC\nTATAATTAATTTCCGGTTACGTACGTAAACCATTAGCTAGCTAGCGCTACGATCGATCGATCGTAGCTAG\nTATAATTAATTTTGCTAGCTAGCTAGCTAGCTAGCTACGATCGATCGTAGCTAGCTAGCTAGC";
+const sampleChr21 = ">Human_Chr21_AP001685_L1_Locus\nAATTTTCTATTTATTTATTTATTTATTTTTGAGATGGAGTCTCGCTCTGTCGCCCAAAATATAATTAATTT\nCCTGGGTTCAAGCGATTCTCCTGCCTCAGCCTCCCAAGTAGCTGGGACTACAGGCACGTATAATTAATTT\nGGCTAATTTTTGTATTTTTAGTAGAGACGGGGTTTCACCATGTTGGCCAGGATGGTCTTGATCTCCTGACC";
 
-const sampleChr21 = `>Human_Chr21_AP001685_L1_Locus
-AATTTTCTATTTATTTATTTATTTATTTTTGAGATGGAGTCTCGCTCTGTCGCCCAAAATATAATTAATTT
-CCTGGGTTCAAGCGATTCTCCTGCCTCAGCCTCCCAAGTAGCTGGGACTACAGGCACGTATAATTAATTT
-GGCTAATTTTTGTATTTTTAGTAGAGACGGGGTTTCACCATGTTGGCCAGGATGGTCTTGATCTCCTGACC`;
+$('btn-load-mars').addEventListener('click', () => { $('fasta-input').value = sampleMarsHill; });
+$('btn-load-chr21').addEventListener('click', () => { $('fasta-input').value = sampleChr21; });
 
-document.getElementById('btn-load-mars').addEventListener('click', () => {
-  document.getElementById('fasta-input').value = sampleMarsHill;
-});
-
-document.getElementById('btn-load-chr21').addEventListener('click', () => {
-  document.getElementById('fasta-input').value = sampleChr21;
-});
-
-document.getElementById('btn-scan').addEventListener('click', () => {
-  const seq = document.getElementById('fasta-input').value.toUpperCase().replace(/[^ATGC]/g, '');
+$('btn-scan').addEventListener('click', () => {
+  const raw = $('fasta-input').value.split('\n').filter(l => !l.startsWith('>')).join('');
+  const seq = raw.toUpperCase().replace(/[^ATGC]/g, '');
   if (!seq) return;
-
-  const brakeMotif = 'TATAATTAATTT';
-  const brakeIndel = 'TATAATTAATTTT';
-
-  const hits = [];
+  const motif = 'TATAATTAATTT', indel = 'TATAATTAATTTT', hits = [];
   let idx = 0;
-  while ((idx = seq.indexOf(brakeMotif, idx)) !== -1) {
-    const isIndel = seq.substr(idx, brakeIndel.length) === brakeIndel;
+  while ((idx = seq.indexOf(motif, idx)) !== -1) {
+    const isIndel = seq.substr(idx, indel.length) === indel;
     hits.push({
       pos: idx + 1,
-      motif: isIndel ? brakeIndel : brakeMotif,
+      motif: isIndel ? indel : motif,
       type: isIndel ? 'Lineage Indel Variant (+T)' : 'Conserved Core Brake'
     });
-    idx += brakeMotif.length;
+    idx += motif.length;
   }
-
-  const resCard = document.getElementById('scan-results-card');
-  const summaryDiv = document.getElementById('scan-summary');
-  const hitsDiv = document.getElementById('scan-hits-list');
-
-  resCard.style.display = 'block';
-  summaryDiv.innerHTML = `<p>Scanned <strong>${seq.length} bp</strong> &bull; Found <strong>${hits.length}</strong> Absolute Syntax motif junction(s).</p>`;
-
-  if (hits.length === 0) {
-    hitsDiv.innerHTML = '<p style="color:#94a3b8; margin-top:8px;">No exact Absolute Syntax motif junctions detected in this window.</p>';
+  $('scan-results-card').style.display = 'block';
+  $('scan-summary').innerHTML = '<p>Scanned <strong>' + seq.length + ' bp</strong> &bull; Found <strong>' + hits.length + '</strong> Absolute Syntax motif junction(s).</p>';
+  if (!hits.length) {
+    $('scan-hits-list').innerHTML = '<p style="color:#94a3b8;margin-top:8px;">No exact Absolute Syntax motif junctions detected in this window.</p>';
   } else {
-    let html = '<ul style="margin-top:10px; list-style:none;">';
-    hits.forEach(h => {
-      html += `<li style="padding:8px 0; border-bottom:1px solid #23304c;">
-        <span style="color:#38bdf8; font-weight:bold;">Pos ${h.pos}</span>: 
-        <code>${h.motif}</code> &mdash; 
-        <span style="color:#10b981;">${h.type}</span>
-      </li>`;
-    });
-    html += '</ul>';
-    hitsDiv.innerHTML = html;
+    $('scan-hits-list').innerHTML = '<ul style="margin-top:10px;list-style:none;">' + hits.map(h => '<li style="padding:8px 0;border-bottom:1px solid #23304c;"><span style="color:#38bdf8;font-weight:bold;">Pos ' + h.pos + '</span>: <code>' + h.motif + '</code> &mdash; <span style="color:#10b981;">' + h.type + '</span></li>').join('') + '</ul>';
   }
 });
 
-// Initializations
 renderGel();
 initKineticsChart();
 runBilateralCollatz(27);

@@ -140,8 +140,7 @@ function initKineticsChart() {
   });
 }
 
-function updateKineticsChart();
-  if (!kineticsChart) return;
+function updateKineticsChart() {  if (!kineticsChart) return;
   const enzyme = enzymeSelect.value;
   const mod = enzyme === 'commercial' ? 0.45 : (enzyme === 'orf2p' ? 0.85 : 0.92);
   const times = [15, 30, 60, 120, 240, 360, 480, 600];

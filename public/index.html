@@ -4,7 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Absolute Genome Engine — Human Frontier Labs</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
+  <style>
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -75,7 +79,7 @@
     </section>
 
     <!-- TAB 2: BILATERAL COLLATZ MIRROR -->
-    <section id="tab-bilateral" class="tab-pane">
+    <section id="tab-bilateral" class="tab-pane" style="display:none;">
       <div class="card intro-card">
         <h2>Bilateral Collatz Toroid &amp; Two's Complement Inversion</h2>
         <p>Extending Collatz into integers via <code>3n + sign(n)</code> reveals an exact bitwise NOT-gate mirror across absolute 1 and -1, governing the terminal 4-2-1 attractor loop.</p>
@@ -114,7 +118,7 @@
     </section>
 
     <!-- TAB 3: SYNTAX SCANNER -->
-    <section id="tab-scanner" class="tab-pane">
+    <section id="tab-scanner" class="tab-pane" style="display:none;">
       <div class="card intro-card">
         <h2>Absolute Syntax Genome Scanner</h2>
         <p>Scan genomic DNA sequences for conserved junction brakes (<code>TATAATTAATTT</code>), lineage-specific indel variants (<code>TATAATTAATTTT</code>), and flanking GC traps.</p>
@@ -142,6 +146,6 @@
     <p>Human Frontier Labs &copy; 2026 &bull; Absolute Syntax Open Falsification Architecture &bull; <a href="https://humanfrontierlabs.com/for-humanity" target="_blank">humanfrontierlabs.com/for-humanity</a></p>
   </footer>
 
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

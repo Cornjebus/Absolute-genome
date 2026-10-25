@@ -82,6 +82,31 @@ nav {
   border-color: var(--accent-blue);
 }
 
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.primary-btn {
+  background: var(--accent-green);
+  color: #051b11;
+  font-weight: 700;
+}
+
+.bit-table-container {
+  overflow-x: auto;
+}
+
 .card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);

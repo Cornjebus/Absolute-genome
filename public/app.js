@@ -1,12 +1,18 @@
 const $ = id => document.getElementById(id);
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    $('tab-' + btn.dataset.tab).classList.add('active');
+function activateTab(tabName) {
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabName);
   });
+  document.querySelectorAll('.tab-pane').forEach(p => {
+    const isTarget = p.id === 'tab-' + tabName;
+    p.classList.toggle('active', isTarget);
+    p.style.display = isTarget ? 'block' : 'none';
+  });
+}
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab));
 });
+activateTab('wetlab');
 
 const gelCanvas = $('gelCanvas'), ctx = gelCanvas.getContext('2d');
 const timeSlider = $('time-slider'), timeVal = $('time-val');
